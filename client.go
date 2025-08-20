@@ -13,43 +13,141 @@ type client struct {
 	httpClient *http.Client
 }
 
+// Salamoonder describes the client contract for interacting with the salamoonder.com API.
+// Each method corresponds to creating a task via createTask and retrieving its result via getTaskResult.
+// Methods with the Context prefix accept context.Context and allow managing timeouts and request cancellation.
 type Salamoonder interface {
-	// Balance returns current wallet balance as a number.
+	// Balance returns the current balance of the user's wallet.
+	//
+	// Uses the `getBalance` task.
+	// Cost: free.
+	//
+	// Returns:
+	//   - float64 — balance in the service's currency.
+	//   - error   — if the request fails or the server returns an error.
 	Balance() (float64, error)
-	// KasadaCreate submits a Kasada task and returns taskId.
+
+	// KasadaCreate creates a task to solve Kasada Captcha (type: "KasadaCaptchaSolver").
+	//
+	// Parameters:
+	//   - pjs    — URL to the p.js script.
+	//   - cdOnly — if true, only CD tokens are returned.
+	//
+	// Cost: 0.002 cents per request.
+	//
+	// Returns:
+	//   - taskId — unique task identifier.
+	//   - error  — if task creation fails.
 	KasadaCreate(pjs string, cdOnly bool) (string, error)
-	// Kasada fetches a Kasada task result.
+
+	// Kasada retrieves the result of a previously created Kasada task.
+	//
+	// Parameters:
+	//   - taskId — task identifier issued by KasadaCreate.
+	//
+	// Returns:
+	//   - KasadaSolution — object containing headers of the form x-kpsdk-*.
+	//   - error          — if the task is not ready or an error occurs.
 	Kasada(taskId string) (KasadaSolution, error)
-	// TwitchScraperCreate submits a Twitch scraper task and returns taskId.
+
+	// TwitchScraperCreate creates a Twitch scraper task (type: "Twitch_Scraper").
+	//
+	// Cost: 0.0001 cents per request.
+	//
+	// Returns:
+	//   - taskId — unique task identifier.
+	//   - error  — if an error occurs.
 	TwitchScraperCreate() (string, error)
-	// TwitchScraper fetches a Twitch scraper task result.
+
+	// TwitchScraper retrieves the result of a Twitch scraper task.
+	//
+	// Parameters:
+	//   - taskId — task identifier.
+	//
+	// Returns:
+	//   - TwitchScraperSolution — contains username, biography, profile_picture.
+	//   - error                 — if the task is not ready or an error occurs.
 	TwitchScraper(taskId string) (TwitchScraperSolution, error)
-	// TwitchPICreate submits a Twitch Public Integrity task and returns taskId. optional: deviceId, clientId
-	TwitchPICreate(accessToken, proxy string, optional ...string) (string, error)
-	// TwitchPI fetches a Twitch Public Integrity task result.
-	TwitchPI(taskId string) (TwitchPublicIntegritySolution, error)
-	// TwitchLICreate submits a Twitch Local Integrity task and returns taskId. optional: deviceId, clientId
-	TwitchLICreate(proxy string, optional ...string) (string, error)
-	// TwitchLI fetches a Twitch Local Integrity task result.
-	TwitchLI(taskId string) (TwitchLocalIntegritySolution, error)
-	// ContextBalance returns current wallet balance as a number. With context
+
+	// PublicIntegrityCreate creates a Twitch Public Integrity task (type: "Twitch_PublicIntegrity").
+	//
+	// Requires own proxies (IP-auth proxies are not supported).
+	//
+	// Parameters:
+	//   - accessToken — Twitch OAuth token.
+	//   - proxy       — string in the format "user:pass@ip:port".
+	//   - optional    — deviceId, clientId (optional).
+	//
+	// Cost: 0.002 cents per request.
+	//
+	// Returns:
+	//   - taskId — unique task identifier.
+	//   - error  — if task creation fails.
+	PublicIntegrityCreate(accessToken, proxy string, optional ...string) (string, error)
+
+	// PublicIntegrity retrieves the result of a Twitch Public Integrity task.
+	//
+	// Parameters:
+	//   - taskId — task identifier.
+	//
+	// Returns:
+	//   - TwitchPublicIntegritySolution — integrity_token, device_id, client-id, user-agent.
+	//   - error                         — if the task is not ready or an error occurs.
+	PublicIntegrity(taskId string) (TwitchPublicIntegritySolution, error)
+
+	// LocalIntegrityCreate creates a Twitch Local Integrity task (type: "Twitch_LocalIntegrity").
+	//
+	// Requires own proxies.
+	//
+	// Parameters:
+	//   - proxy    — string in the format "user:pass@ip:port".
+	//   - optional — deviceId, clientId (optional).
+	//
+	// Cost: 0.002 cents per request.
+	//
+	// Returns:
+	//   - taskId — unique task identifier.
+	//   - error  — if task creation fails.
+	LocalIntegrityCreate(proxy string, optional ...string) (string, error)
+
+	// LocalIntegrity retrieves the result of a Twitch Local Integrity task.
+	//
+	// Parameters:
+	//   - taskId — task identifier.
+	//
+	// Returns:
+	//   - TwitchLocalIntegritySolution — integrity_token, device_id, client-id, user-agent.
+	//   - error                        — if the task is not ready or an error occurs.
+	LocalIntegrity(taskId string) (TwitchLocalIntegritySolution, error)
+
+	// --- Methods with context.Context ---
+
+	// ContextBalance is similar to Balance but with context.
 	ContextBalance(ctx context.Context) (float64, error)
-	// ContextKasadaCreate submits a Kasada task and returns taskId. With context
+
+	// ContextKasadaCreate is similar to KasadaCreate but with context.
 	ContextKasadaCreate(ctx context.Context, pjs string, cdOnly bool) (string, error)
-	// ContextKasada fetches a Kasada task result. With context
+
+	// ContextKasada is similar to Kasada but with context.
 	ContextKasada(ctx context.Context, taskId string) (KasadaSolution, error)
-	// ContextTwitchScraperCreate submits a Twitch scraper task and returns taskId. With context
+
+	// ContextTwitchScraperCreate is similar to TwitchScraperCreate but with context.
 	ContextTwitchScraperCreate(ctx context.Context) (string, error)
-	// ContextTwitchScraper fetches a Twitch scraper task result. With context
+
+	// ContextTwitchScraper is similar to TwitchScraper but with context.
 	ContextTwitchScraper(ctx context.Context, taskId string) (TwitchScraperSolution, error)
-	// ContextTwitchPICreate submits a Twitch Public Integrity task and returns taskId. optional: deviceId, clientId. With context
-	ContextTwitchPICreate(ctx context.Context, accessToken, proxy string, optional ...string) (string, error)
-	// ContextTwitchPI fetches a Twitch Public Integrity task result. With context
-	ContextTwitchPI(ctx context.Context, taskId string) (TwitchPublicIntegritySolution, error)
-	// ContextTwitchLICreate submits a Twitch Local Integrity task and returns taskId. optional: deviceId, clientId. With context
-	ContextTwitchLICreate(ctx context.Context, proxy string, optional ...string) (string, error)
-	// ContextTwitchLI fetches a Twitch Local Integrity task result. With context
-	ContextTwitchLI(ctx context.Context, taskId string) (TwitchLocalIntegritySolution, error)
+
+	// ContextPublicIntegrityCreate is similar to PublicIntegrityCreate but with context.
+	ContextPublicIntegrityCreate(ctx context.Context, accessToken, proxy string, optional ...string) (string, error)
+
+	// ContextPublicIntegrity is similar to PublicIntegrity but with context.
+	ContextPublicIntegrity(ctx context.Context, taskId string) (TwitchPublicIntegritySolution, error)
+
+	// ContextLocalIntegrityCreate is similar to LocalIntegrityCreate but with context.
+	ContextLocalIntegrityCreate(ctx context.Context, proxy string, optional ...string) (string, error)
+
+	// ContextLocalIntegrity is similar to LocalIntegrity but with context.
+	ContextLocalIntegrity(ctx context.Context, taskId string) (TwitchLocalIntegritySolution, error)
 }
 
 func New(apiKey string) Salamoonder {
@@ -157,8 +255,8 @@ func (c *client) TwitchScraper(taskId string) (TwitchScraperSolution, error) {
 	return c.ContextTwitchScraper(context.Background(), taskId)
 }
 
-// ContextTwitchPICreate submits a Twitch Public Integrity task and returns taskId.
-func (c *client) ContextTwitchPICreate(ctx context.Context, accessToken, proxy string, optional ...string) (string, error) {
+// ContextPublicIntegrityCreate submits a Twitch Public Integrity task and returns taskId.
+func (c *client) ContextPublicIntegrityCreate(ctx context.Context, accessToken, proxy string, optional ...string) (string, error) {
 	var deviceID, clientID string
 	if len(optional) > 0 {
 		deviceID = optional[0]
@@ -182,8 +280,8 @@ func (c *client) ContextTwitchPICreate(ctx context.Context, accessToken, proxy s
 	return resp.TaskId, nil
 }
 
-// ContextTwitchPI fetches a Twitch Public Integrity task result. With context
-func (c *client) ContextTwitchPI(ctx context.Context, taskId string) (TwitchPublicIntegritySolution, error) {
+// ContextPublicIntegrity fetches a Twitch Public Integrity task result. With context
+func (c *client) ContextPublicIntegrity(ctx context.Context, taskId string) (TwitchPublicIntegritySolution, error) {
 	resp, err := taskResult[TaskResponse[TwitchPublicIntegritySolution]](context.Background(), c, taskId)
 	if err != nil {
 		return TwitchPublicIntegritySolution{}, err
@@ -197,16 +295,16 @@ func (c *client) ContextTwitchPI(ctx context.Context, taskId string) (TwitchPubl
 	return resp.Solution, nil
 }
 
-func (c *client) TwitchPICreate(accessToken, proxy string, optional ...string) (string, error) {
-	return c.ContextTwitchPICreate(context.Background(), accessToken, proxy, optional...)
+func (c *client) PublicIntegrityCreate(accessToken, proxy string, optional ...string) (string, error) {
+	return c.ContextPublicIntegrityCreate(context.Background(), accessToken, proxy, optional...)
 }
 
-func (c *client) TwitchPI(taskId string) (TwitchPublicIntegritySolution, error) {
-	return c.ContextTwitchPI(context.Background(), taskId)
+func (c *client) PublicIntegrity(taskId string) (TwitchPublicIntegritySolution, error) {
+	return c.ContextPublicIntegrity(context.Background(), taskId)
 }
 
-// ContextTwitchLICreate submits a Twitch Local Integrity task and returns taskId.
-func (c *client) ContextTwitchLICreate(ctx context.Context, proxy string, optional ...string) (string, error) {
+// ContextLocalIntegrityCreate submits a Twitch Local Integrity task and returns taskId.
+func (c *client) ContextLocalIntegrityCreate(ctx context.Context, proxy string, optional ...string) (string, error) {
 	var deviceID, clientID string
 	if len(optional) > 0 {
 		deviceID = optional[0]
@@ -229,8 +327,8 @@ func (c *client) ContextTwitchLICreate(ctx context.Context, proxy string, option
 	return resp.TaskId, nil
 }
 
-// ContextTwitchLI fetches a Twitch Local Integrity task result. With context
-func (c *client) ContextTwitchLI(ctx context.Context, taskId string) (TwitchLocalIntegritySolution, error) {
+// ContextLocalIntegrity fetches a Twitch Local Integrity task result. With context
+func (c *client) ContextLocalIntegrity(ctx context.Context, taskId string) (TwitchLocalIntegritySolution, error) {
 	resp, err := taskResult[TaskResponse[TwitchLocalIntegritySolution]](context.Background(), c, taskId)
 	if err != nil {
 		return TwitchLocalIntegritySolution{}, err
@@ -244,10 +342,10 @@ func (c *client) ContextTwitchLI(ctx context.Context, taskId string) (TwitchLoca
 	return resp.Solution, nil
 }
 
-func (c *client) TwitchLICreate(proxy string, optional ...string) (string, error) {
-	return c.ContextTwitchLICreate(context.Background(), proxy, optional...)
+func (c *client) LocalIntegrityCreate(proxy string, optional ...string) (string, error) {
+	return c.ContextLocalIntegrityCreate(context.Background(), proxy, optional...)
 }
 
-func (c *client) TwitchLI(taskId string) (TwitchLocalIntegritySolution, error) {
-	return c.ContextTwitchLI(context.Background(), taskId)
+func (c *client) LocalIntegrity(taskId string) (TwitchLocalIntegritySolution, error) {
+	return c.ContextLocalIntegrity(context.Background(), taskId)
 }

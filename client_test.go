@@ -149,7 +149,7 @@ func TestTwitchScraper_Success(t *testing.T) {
 	}
 }
 
-func TestTwitchPI_CreateAndGet_Success(t *testing.T) {
+func TestPublicIntegrity_CreateAndGet_Success(t *testing.T) {
 	createHandler := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/createTask" {
 			w.Header().Set("Content-Type", "application/json")
@@ -179,24 +179,24 @@ func TestTwitchPI_CreateAndGet_Success(t *testing.T) {
 	c, closeFn := newTestClient(t, createHandler)
 	defer closeFn()
 
-	id, err := c.TwitchPICreate("acc", "prx")
+	id, err := c.PublicIntegrityCreate("acc", "prx")
 	if err != nil {
-		t.Fatalf("TwitchPICreate() error: %v", err)
+		t.Fatalf("PublicIntegrityCreate() error: %v", err)
 	}
 	if id != "pi-1" {
-		t.Fatalf("TwitchPICreate() = %q, want pi-1", id)
+		t.Fatalf("PublicIntegrityCreate() = %q, want pi-1", id)
 	}
 
-	got, err := c.TwitchPI(id)
+	got, err := c.PublicIntegrity(id)
 	if err != nil {
-		t.Fatalf("TwitchPI() error: %v", err)
+		t.Fatalf("PublicIntegrity() error: %v", err)
 	}
 	if got.DeviceID != "dev" || got.ClientID != "CID" {
-		t.Fatalf("TwitchPI() unexpected solution: %+v", got)
+		t.Fatalf("PublicIntegrity() unexpected solution: %+v", got)
 	}
 }
 
-func TestTwitchLI_CreateAndGet_Success(t *testing.T) {
+func TestLocalIntegrity_CreateAndGet_Success(t *testing.T) {
 	createHandler := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/createTask" {
 			w.Header().Set("Content-Type", "application/json")
@@ -226,19 +226,19 @@ func TestTwitchLI_CreateAndGet_Success(t *testing.T) {
 	c, closeFn := newTestClient(t, createHandler)
 	defer closeFn()
 
-	id, err := c.TwitchLICreate("prx")
+	id, err := c.LocalIntegrityCreate("prx")
 	if err != nil {
-		t.Fatalf("TwitchLICreate() error: %v", err)
+		t.Fatalf("LocalIntegrityCreate() error: %v", err)
 	}
 	if id != "li-1" {
-		t.Fatalf("TwitchLICreate() = %q, want li-1", id)
+		t.Fatalf("LocalIntegrityCreate() = %q, want li-1", id)
 	}
 
-	got, err := c.TwitchLI(id)
+	got, err := c.LocalIntegrity(id)
 	if err != nil {
-		t.Fatalf("TwitchLI() error: %v", err)
+		t.Fatalf("LocalIntegrity() error: %v", err)
 	}
 	if got.DeviceID != "dev2" || got.ClientID != "CID2" {
-		t.Fatalf("TwitchLI() unexpected solution: %+v", got)
+		t.Fatalf("LocalIntegrity() unexpected solution: %+v", got)
 	}
 }
