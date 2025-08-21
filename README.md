@@ -1,6 +1,8 @@
-# go-salamoonder
+[![Go Reference](https://pkg.go.dev/badge/github.com/juanbrotenelle/go_salamoonder.svg)](https://pkg.go.dev/github.com/juanbrotenelle/go_salamoonder)
 
-The go-salamoonder package provides a complete set of methods for interacting with the [Salamoonder API](https://salamoonder.com/).
+# go_salamoonder
+
+The go_salamoonder package provides a complete set of methods for interacting with the [Salamoonder API](https://salamoonder.com/).
 
 ## Installation
 
