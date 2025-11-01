@@ -1,28 +1,30 @@
 package salamoonder
 
-import "errors"
+import "encoding/json"
 
-// Common Types
-
-var ErrTaskNotReady = errors.New("task not ready")
-
-type TaskPayload interface {
-	BalanceTask | KasadaTask | TwitchScraperTask | TwitchPublicIntegrityTask | TwitchLocalIntegrityTask
+type TaskOptions interface {
+	KasadaOptions | Reese84Options | UutmvcOptions | TwitchScraperOptions | TwitchPublicIntegrityOptions | TwitchLocalIntegrityOptions
 }
 
-type SolutionPayload interface {
-	KasadaSolution | TwitchScraperSolution | TwitchPublicIntegritySolution | TwitchLocalIntegritySolution
+type TaskSolution interface {
+	KasadaSolution | Reese84Solution | Reese84SubmitPayloadSolution | UutmvcSolution | TwitchScraperSolution | TwitchPublicIntegritySolution | TwitchLocalIntegritySolution
 }
 
-type CreateTaskResponse struct {
+type CreateTaskRequest struct {
+	ApiKey string      `json:"api_key"`
+	Task   interface{} `json:"task"`
+}
+
+type CreateTaskResult struct {
 	ErrorCode        int    `json:"error_code"`
 	ErrorDescription string `json:"error_description"`
 	TaskId           string `json:"taskId"`
 }
 
-type CreateTaskRequest[T TaskPayload] struct {
-	APIKey string `json:"api_key"`
-	Task   T      `json:"task"`
+type CreateTaskBalanceResult struct {
+	ErrorCode        int    `json:"error_code"`
+	ErrorDescription string `json:"error_description"`
+	Wallet           string `json:"wallet"`
 }
 
 type TaskRequest struct {
@@ -30,47 +32,60 @@ type TaskRequest struct {
 	TaskId string `json:"taskId"`
 }
 
-type TaskResponse[S SolutionPayload] struct {
-	ErrorId  int    `json:"error_id"`
-	Solution S      `json:"solution"`
+type TaskResult[TS TaskSolution] struct {
+	ErrorId  int    `json:"errorId"`
+	Solution TS     `json:"solution"`
 	Status   string `json:"status"`
 }
 
-// Balance
-
-type BalanceTask struct {
-	Type string `json:"type"` // "getBalance"
+type TaskResultRaw struct {
+	ErrorId  int             `json:"errorId"`
+	Solution json.RawMessage `json:"solution"`
+	Status   string          `json:"status"`
 }
 
-type BalanceResponse struct {
-	ErrorCode        int    `json:"error_code"`
-	ErrorDescription string `json:"error_description"`
-	Wallet           string `json:"wallet"`
-}
-
-// Kasada Solver
-
-type KasadaTask struct {
-	Type   string `json:"type"` // "KasadaCaptchaSolver"
-	PJS    string `json:"pjs"`
-	CDOnly string `json:"cdOnly"` // "true/false"
+type KasadaOptions struct {
+	Pjs    string `json:"pjs"`
+	CdOnly bool   `json:"cdOnly"`
 }
 
 type KasadaSolution struct {
 	UserAgent string `json:"user-agent"`
-	XCd       string `json:"x-kpsdk-cd"`
-	XCr       string `json:"x-kpsdk-cr"`
-	XCt       string `json:"x-kpsdk-ct"`
-	XR        string `json:"x-kpsdk-r"`
-	XV        string `json:"x-kpsdk-v"`
-	XSt       string `json:"x-kpsdk-st"`
+	XIsHuman  string `json:"x-is-human"`
+	XKpsdkCd  string `json:"x-kpsdk-cd"`
+	XKpsdkCr  string `json:"x-kpsdk-cr"`
+	XKpsdkCt  string `json:"x-kpsdk-ct"`
+	XKpsdkR   string `json:"x-kpsdk-r"`
+	XKpsdkSt  string `json:"x-kpsdk-st"`
 }
 
-// Twitch Scraper
-
-type TwitchScraperTask struct {
-	Type string `json:"type"` // "TwitchScraper"
+type Reese84Options struct {
+	Website      string `json:"website"`
+	SubmitPayload bool  `json:"submit_payload"`
 }
+
+type Reese84SubmitPayloadSolution struct {
+	Token      string `json:"token"`
+	RenewInSec int    `json:"renewInSec"`
+	UserAgent  string `json:"user-agent"`
+}
+
+type Reese84Solution struct {
+	Payload        string `json:"payload"`
+	UserAgent      string `json:"user-agent"`
+	AcceptLanguage string `json:"accept-language"`
+}
+
+type UutmvcOptions struct {
+	Website string `json:"website"`
+}
+
+type UutmvcSolution struct {
+	UserAgent string `json:"user-agent"`
+	Utmvc     string `json:"utmvc"`
+}
+
+type TwitchScraperOptions struct{}
 
 type TwitchScraperSolution struct {
 	Biography      string `json:"biography"`
@@ -78,14 +93,11 @@ type TwitchScraperSolution struct {
 	Username       string `json:"username"`
 }
 
-// Twitch Public Integrity
-
-type TwitchPublicIntegrityTask struct {
-	Type        string `json:"type"` // "Twitch_PublicIntegrity"
-	AccessToken string `json:"access_token"`
+type TwitchPublicIntegrityOptions struct {
 	Proxy       string `json:"proxy"`
-	DeviceID    string `json:"deviceId"` // optional
-	ClientID    string `json:"clientId"` // optional
+	AccessToken string `json:"access_token"`
+	DeviceID    string `json:"deviceId"`
+	ClientID    string `json:"clientId"`
 }
 
 type TwitchPublicIntegritySolution struct {
@@ -96,13 +108,10 @@ type TwitchPublicIntegritySolution struct {
 	ClientID       string `json:"client-id"`
 }
 
-// Twitch Local Integrity
-
-type TwitchLocalIntegrityTask struct {
-	Type     string `json:"type"` // "Twitch_LocalIntegrity"
+type TwitchLocalIntegrityOptions struct {
 	Proxy    string `json:"proxy"`
-	DeviceID string `json:"deviceId"` // optional
-	ClientID string `json:"clientId"` // optional
+	DeviceID string `json:"deviceId"`
+	ClientID string `json:"clientId"`
 }
 
 type TwitchLocalIntegritySolution struct {

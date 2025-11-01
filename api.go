@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -28,40 +29,18 @@ func (c *client) postJSON(ctx context.Context, path string, requestBody any, res
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %s", resp.Status)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read response: %w", err)
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(responseDest); err != nil {
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(body))
+	}
+
+	if err := json.Unmarshal(body, responseDest); err != nil {
 		return fmt.Errorf("decode response: %w", err)
 	}
 
 	return nil
-}
-
-// createTask submits a task payload and decodes the response into the caller-provided generic type R.
-// T is the concrete task payload type; R is the expected response type from the endpoint.
-func createTask[T TaskPayload, R any](ctx context.Context, c *client, task T) (R, error) {
-	var respBody R
-	rawReq := CreateTaskRequest[T]{
-		APIKey: c.apiKey,
-		Task:   task,
-	}
-	if err := c.postJSON(ctx, "/createTask", rawReq, &respBody); err != nil {
-		return respBody, fmt.Errorf("createTask: %w", err)
-	}
-	return respBody, nil
-}
-
-// taskResult requests a task result by id and decodes it into R.
-func taskResult[R any](ctx context.Context, c *client, taskId string) (R, error) {
-	var respBody R
-	rawReq := TaskRequest{
-		APIKey: c.apiKey,
-		TaskId: taskId,
-	}
-	if err := c.postJSON(ctx, "/getTaskResult", rawReq, &respBody); err != nil {
-		return respBody, fmt.Errorf("taskResult: %w", err)
-	}
-	return respBody, nil
 }
