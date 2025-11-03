@@ -195,7 +195,7 @@ func TestGetTaskResult_TwitchScraper_Success(t *testing.T) {
 	}
 }
 
-func TestCreateTask_TwitchPublicIntegrity_Success(t *testing.T) {
+func TestCreateTask_TwitchIntegrity_Success(t *testing.T) {
 	createHandler := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/createTask" {
 			w.Header().Set("Content-Type", "application/json")
@@ -225,8 +225,7 @@ func TestCreateTask_TwitchPublicIntegrity_Success(t *testing.T) {
 	c, closeFn := newTestClient(t, createHandler)
 	defer closeFn()
 
-	result, err := c.CreateTask(context.Background(), TwitchPublicIntegrityOptions{
-		Proxy:       "prx",
+	result, err := c.CreateTask(context.Background(), TwitchIntegrityOptions{
 		AccessToken: "acc",
 		DeviceID:    "dev",
 		ClientID:    "cid",
@@ -238,62 +237,11 @@ func TestCreateTask_TwitchPublicIntegrity_Success(t *testing.T) {
 		t.Fatalf("CreateTask() = %q, want pi-1", result.TaskId)
 	}
 
-	got, err := GetTaskResult[TwitchPublicIntegritySolution](c, context.Background(), result.TaskId)
+	got, err := GetTaskResult[TwitchIntegritySolution](c, context.Background(), result.TaskId)
 	if err != nil {
 		t.Fatalf("GetTaskResult() error: %v", err)
 	}
 	if got.Solution.DeviceID != "dev" || got.Solution.ClientID != "CID" {
-		t.Fatalf("GetTaskResult() unexpected solution: %+v", got.Solution)
-	}
-}
-
-func TestCreateTask_TwitchLocalIntegrity_Success(t *testing.T) {
-	createHandler := func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/createTask" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"error_code":0,"error_description":"","taskId":"li-1"}`))
-			return
-		}
-		if r.URL.Path == "/getTaskResult" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{
-				"errorId":0,
-				"status":"ready",
-				"solution":{
-					"device_id":"dev2",
-					"integrity_token":"token2",
-					"proxy":"prx2",
-					"user-agent":"UA2",
-					"client-id":"CID2"
-				}
-			}`))
-			return
-		}
-		w.WriteHeader(http.StatusNotFound)
-	}
-
-	c, closeFn := newTestClient(t, createHandler)
-	defer closeFn()
-
-	result, err := c.CreateTask(context.Background(), TwitchLocalIntegrityOptions{
-		Proxy:    "prx",
-		DeviceID: "dev",
-		ClientID: "cid",
-	})
-	if err != nil {
-		t.Fatalf("CreateTask() error: %v", err)
-	}
-	if result.TaskId != "li-1" {
-		t.Fatalf("CreateTask() = %q, want li-1", result.TaskId)
-	}
-
-	got, err := GetTaskResult[TwitchLocalIntegritySolution](c, context.Background(), result.TaskId)
-	if err != nil {
-		t.Fatalf("GetTaskResult() error: %v", err)
-	}
-	if got.Solution.DeviceID != "dev2" || got.Solution.ClientID != "CID2" {
 		t.Fatalf("GetTaskResult() unexpected solution: %+v", got.Solution)
 	}
 }

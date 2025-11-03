@@ -65,9 +65,7 @@ func (c *Client) CreateTask(ctx context.Context, options any) (*CreateTaskResult
 		return createTaskGeneric(c, ctx, opts)
 	case TwitchScraperOptions:
 		return createTaskGeneric(c, ctx, opts)
-	case TwitchPublicIntegrityOptions:
-		return createTaskGeneric(c, ctx, opts)
-	case TwitchLocalIntegrityOptions:
+	case TwitchIntegrityOptions:
 		return createTaskGeneric(c, ctx, opts)
 	default:
 		return nil, ErrUnsupportedTaskOptionsType
@@ -156,10 +154,8 @@ func getTaskTypeFromOptions(opts any) string {
 		return "IncapsulaUTMVCSolver"
 	case TwitchScraperOptions:
 		return "Twitch_Scraper"
-	case TwitchPublicIntegrityOptions:
+	case TwitchIntegrityOptions:
 		return "Twitch_PublicIntegrity"
-	case TwitchLocalIntegrityOptions:
-		return "Twitch_LocalIntegrity"
 	default:
 		return "unknown"
 	}

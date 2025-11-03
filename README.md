@@ -1,12 +1,13 @@
 <div align="left">
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/juanbrotenelle/go_salamoonder.svg)](https://pkg.go.dev/github.com/juanbrotenelle/go_salamoonder) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Go Reference](https://pkg.go.dev/badge/github.com/juanbrotenelle/go_salamoonder.svg)](https://pkg.go.dev/github.com/juanbrotenelle/go_salamoonder)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
 
 # go-salamoonder
 
-The go-salamoonder package provides a complete set of methods for interacting with the [Salamoonder API](https://salamoonder.com/).
+Go library for working with [Salamoonder API](https://salamoonder.com).
 
 ## Installation
 
