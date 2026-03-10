@@ -34,6 +34,23 @@ func (c *client) postJSON(ctx context.Context, path string, requestBody any, res
 		return fmt.Errorf("read response: %w", err)
 	}
 
+	if resp.StatusCode == http.StatusBadRequest {
+		var apiErr struct {
+			ErrorCode        int    `json:"error_code"`
+			ErrorDescription string `json:"error_description"`
+		}
+		if jsonErr := json.Unmarshal(body, &apiErr); jsonErr == nil && apiErr.ErrorDescription != "" {
+			return &APIError{
+				StatusCode: http.StatusBadRequest,
+				Msg:        apiErr.ErrorDescription,
+			}
+		}
+		return &APIError{
+			StatusCode: http.StatusBadRequest,
+			Msg:        string(body),
+		}
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(body))
 	}

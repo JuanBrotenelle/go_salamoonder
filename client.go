@@ -49,7 +49,10 @@ func (c *Client) Balance(ctx context.Context) (*CreateTaskBalanceResult, error) 
 	}
 
 	if result.ErrorCode != 0 {
-		return &result, fmt.Errorf("API error %d: %s", result.ErrorCode, result.ErrorDescription)
+		return &result, &APIError{
+			StatusCode: http.StatusOK,
+			Msg:        result.ErrorDescription,
+		}
 	}
 
 	return &result, nil
@@ -57,18 +60,30 @@ func (c *Client) Balance(ctx context.Context) (*CreateTaskBalanceResult, error) 
 
 func (c *Client) CreateTask(ctx context.Context, options any) (*CreateTaskResult, error) {
 	switch opts := options.(type) {
-	case KasadaOptions:
+	case KasadaStandardOptions:
+		return createTaskGeneric(c, ctx, opts)
+	case KasadaPayloadOptions:
+		return createTaskGeneric(c, ctx, opts)
+	case AkamaiWebOptions:
+		return createTaskGeneric(c, ctx, opts)
+	case AkamaiSBSDOptions:
 		return createTaskGeneric(c, ctx, opts)
 	case Reese84Options:
 		return createTaskGeneric(c, ctx, opts)
 	case UutmvcOptions:
+		return createTaskGeneric(c, ctx, opts)
+	case DataDomeInterstitialOptions:
+		return createTaskGeneric(c, ctx, opts)
+	case DataDomeSliderOptions:
 		return createTaskGeneric(c, ctx, opts)
 	case TwitchScraperOptions:
 		return createTaskGeneric(c, ctx, opts)
 	case TwitchIntegrityOptions:
 		return createTaskGeneric(c, ctx, opts)
 	default:
-		return nil, ErrUnsupportedTaskOptionsType
+		return nil, &MethodError{
+			OptionsValue: options,
+		}
 	}
 }
 
@@ -82,7 +97,11 @@ func (c *Client) Task(ctx context.Context, taskId string) (*TaskResultRaw, error
 		return nil, err
 	}
 	if result.ErrorId != 0 {
-		return &result, fmt.Errorf("task error id: %d", result.ErrorId)
+		return &result, &APIError{
+			StatusCode: http.StatusOK,
+			TaskId:     taskId,
+			Msg:        result.Status,
+		}
 	}
 	return &result, nil
 }
@@ -119,7 +138,11 @@ func createTaskGeneric[TO TaskOptions](c *Client, ctx context.Context, options T
 	}
 
 	if result.ErrorCode != 0 {
-		return &result, fmt.Errorf("API error %d: %s", result.ErrorCode, result.ErrorDescription)
+		return &result, &APIError{
+			StatusCode: http.StatusOK,
+			TaskId:     result.TaskId,
+			Msg:        result.ErrorDescription,
+		}
 	}
 
 	return &result, nil
@@ -135,7 +158,11 @@ func GetTaskResult[TS TaskSolution](c *Client, ctx context.Context, taskId strin
 		return nil, err
 	}
 	if result.ErrorId != 0 {
-		return &result, fmt.Errorf("task error id: %d", result.ErrorId)
+		return &result, &APIError{
+			StatusCode: http.StatusOK,
+			TaskId:     taskId,
+			Msg:        result.Status,
+		}
 	}
 	return &result, nil
 }
@@ -146,12 +173,22 @@ func (c *client) setBaseURL(url string) {
 
 func getTaskTypeFromOptions(opts any) string {
 	switch any(opts).(type) {
-	case KasadaOptions:
+	case KasadaStandardOptions:
 		return "KasadaCaptchaSolver"
+	case KasadaPayloadOptions:
+		return "KasadaPayloadSolver"
+	case AkamaiWebOptions:
+		return "AkamaiWebSolver"
+	case AkamaiSBSDOptions:
+		return "AkamaiSBSDSolver"
 	case Reese84Options:
 		return "IncapsulaReese84Solver"
 	case UutmvcOptions:
 		return "IncapsulaUTMVCSolver"
+	case DataDomeInterstitialOptions:
+		return "DataDomeInterstitialSolver"
+	case DataDomeSliderOptions:
+		return "DataDomeSliderSolver"
 	case TwitchScraperOptions:
 		return "Twitch_Scraper"
 	case TwitchIntegrityOptions:
