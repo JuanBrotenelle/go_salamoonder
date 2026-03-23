@@ -38,13 +38,10 @@ func New(apiKey string, httpClient *http.Client) (*Client, error) {
 func (c *Client) Balance(ctx context.Context) (*CreateTaskBalanceResult, error) {
 	req := CreateTaskRequest{
 		ApiKey: c.apiKey,
-		Task: map[string]interface{}{
-			"type": "getBalance",
-		},
 	}
 
 	var result CreateTaskBalanceResult
-	if err := c.postJSON(ctx, "/createTask", req, &result); err != nil {
+	if err := c.postJSON(ctx, "/getBalance", req, &result); err != nil {
 		return nil, err
 	}
 
