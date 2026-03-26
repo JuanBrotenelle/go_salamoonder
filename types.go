@@ -248,7 +248,7 @@ type (
 	TwitchIntegritySolution struct {
 		DeviceID       string `json:"device-id"`
 		IntegrityToken string `json:"integrity-token"`
-		ExpirationAt   string `json:"expiration"`
+		ExpirationAt   int64  `json:"expiration"`
 		UserAgent      string `json:"user-agent"`
 		ClientID       string `json:"client-id"`
 	}
