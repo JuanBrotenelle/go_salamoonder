@@ -240,14 +240,15 @@ type (
 	// https://apidocs.salamoonder.com/tasks/twitch/integrity
 	TwitchIntegrityOptions struct {
 		AccessToken string `json:"access_token"`
-		DeviceID    string `json:"deviceId"`
-		ClientID    string `json:"clientId"`
+		DeviceID    string `json:"device_Id"`
+		ClientID    string `json:"client_Id"`
 	}
 
 	// https://apidocs.salamoonder.com/tasks/twitch/integrity
 	TwitchIntegritySolution struct {
-		DeviceID       string `json:"device_id"`
-		IntegrityToken string `json:"integrity_token"`
+		DeviceID       string `json:"device-id"`
+		IntegrityToken string `json:"integrity-token"`
+		ExpirationAt   string `json:"expiration"`
 		UserAgent      string `json:"user-agent"`
 		ClientID       string `json:"client-id"`
 	}
